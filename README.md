@@ -1,1 +1,3 @@
-# solid-octo-palm-tree
+# 声明
+- 本网站已经部署
+- 参考readme文档过段时间完成
