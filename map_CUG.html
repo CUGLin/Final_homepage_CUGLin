@@ -1,0 +1,266 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>3D地图</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font: 12px/16px Verdana, Helvetica, Arial, sans-serif;
+            width: 100%;
+            height: 100%;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .input-card {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000; /* 确保控件位于地图之上 */
+        }
+
+        .input-card h4 {
+            margin-top: 0;
+            margin-bottom: 10px; /* 标题下方留白 */
+        }
+
+        .input-item {
+            display: flex; /* 使用 Flexbox 进行对齐 */
+            margin-top: 10px;
+        }
+
+        .input-item .btn {
+            flex: 1; /* 等分按钮空间 */
+            margin-right: 10px; /* 按钮间距 */
+            width: auto; /* 宽度自适应内容 */
+        }
+
+        .input-item .btn:last-child {
+            margin-right: 0;
+        }
+
+        .label {
+            /* 标签样式 */
+            font-size: 16px;
+            font-weight: bold;
+            color: green;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-color: rgba(100, 255, 200, 0.8);
+            border-width: 2px;
+            border-radius: 15px;
+            padding: 5px 10px;
+            text-align: center;
+            line-height: 18px;
+            font-family: STLiti;
+        }
+    </style>
+    <script language="javascript" src="//webapi.amap.com/maps?v=2.0&key=a161bd6d1a14dea5290f1bdc0df4d68e&plugin=AMap.ControlBar,AMap.ToolBar"></script>
+</head>
+<body>
+<div id="container">
+    <div id="map"></div>
+    <div class="input-card">
+        <h4>轨迹回放控制</h4>
+        <div class="input-item">
+            <input type="button" class="btn" value="开始动画" id="start" onclick="startAnimation()"/>
+            <input type="button" class="btn" value="暂停动画" id="pause" onclick="pauseAnimation()"/>
+        </div>
+        <div class="input-item">
+            <input type="button" class="btn" value="继续动画" id="resume" onclick="resumeAnimation()"/>
+            <input type="button" class="btn" value="停止动画" id="stop" onclick="stopAnimation()"/>
+        </div>
+    </div>
+</div>
+<script language="javascript">
+    var map;
+    function mapInit() {
+        map = new AMap.Map('map', {
+            rotateEnable: true,
+            pitchEnable: true,
+            zoom: 16,
+            pitch: 50,
+            rotation: -15,
+            viewMode: '3D', // 开启3D视图，默认关闭
+            zooms: [2, 20],
+            center: [114.61716, 30.457544] // 地图中心点坐标
+        });
+
+        map.on("complete", function () {
+            console.log("地图加载完成！");
+
+            // 定义多边形的坐标
+            var polygonCoords = [
+                [114.610544, 30.459691],
+                [114.610399, 30.459594],
+                [114.610285, 30.459406],
+                [114.61035, 30.458599],
+                [114.610324, 30.457478],
+                [114.610608, 30.457137],
+                [114.612542, 30.456493],
+                [114.615426, 30.455253],
+                [114.615601, 30.455166],
+                [114.616394, 30.454804],
+                [114.617479, 30.45447],
+                [114.620083, 30.454445],
+                [114.622817, 30.454713],
+                [114.622043, 30.460454]
+            ];
+
+            // 创建多边形
+            var polygon = new AMap.Polygon({
+                path: polygonCoords,
+                strokeColor: "#FF33FF",
+                strokeOpacity: 0.2,
+                strokeWeight: 3,
+                fillColor: "#1791fc",
+                fillOpacity: 0.35
+            });
+
+            polygon.setMap(map);
+
+
+            // 定义矢量点位置和对应的图片路径及尺寸
+            var pointFeatures = [
+                { position: [114.618209, 30.456743], image: '图书馆.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.617842,30.459905], image: '北门.png', size: [78, 40], labelOffset: [0, -20] },
+                { position: [114.622417,30.457507], image: '东门.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.619703, 30.459624], image: '地信学院.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.618698, 30.459898], image: '计算机学院.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.618718, 30.457883], image: '公教一.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.618688, 30.458835], image: '公教二.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.615634, 30.457566], image: '环境学院.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.614848, 30.458595], image: '经管学院.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.61638, 30.458389], image: '材化学院.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.617464, 30.457755], image: '生环国重.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.617246, 30.458526], image: '地矿国重.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.615853, 30.456297], image: '樱花.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.61523,30.456809], image: '荷花.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.621387,30.458335], image: '体育馆.png', size: [50, 50], labelOffset: [0, -20] },
+                { position: [114.618246,30.455178], image: '烤鸡.png', size: [54, 40], labelOffset: [0, -20] },
+                { position: [114.619192,30.455409], image: '咖啡.png', size: [50, 50], labelOffset: [0, -20] },
+            ];
+
+            // 添加矢量图标到点矢量位置上
+            for (var i = 0; i < pointFeatures.length; i++) {
+                var icon = new AMap.Icon({
+                    size: new AMap.Size(pointFeatures[i].size[0], pointFeatures[i].size[1]),    // 图标尺寸
+                    image: pointFeatures[i].image,  // 图标图片URL，假设图片与HTML文件在同一级目录下
+                    imageSize: new AMap.Size(pointFeatures[i].size[0], pointFeatures[i].size[1])   // 图标尺寸
+                });
+
+                var marker = new AMap.Marker({
+                    position: pointFeatures[i].position, // 图标位置
+                    icon: icon, // 设置图标
+                    offset: new AMap.Pixel(-12, -12), // 调整偏移以使图标居中（如果需要，可以取消注释此行）
+                    map: map
+                });
+
+                // 添加标签
+                var label = new AMap.Text({
+                    text: pointFeatures[i].image.replace('.png', ''), // 使用图片名称作为标签文本
+                    position: pointFeatures[i].position, // 标签位置
+                    offset: new AMap.Pixel(pointFeatures[i].labelOffset[0], pointFeatures[i].labelOffset[1]), // 调整偏移以使标签显示在图标下方
+                    map: map,
+                    style: {
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        color: 'green',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        borderColor: 'rgba(100, 255, 200, 0.8)',
+                        borderWidth: '2px',
+                        borderRadius: '15px',
+                        padding: '5px 10px',
+                        textAlign: 'center',
+                        lineHeight: '18px',
+                        fontFamily: 'STLiti'
+                    }
+                });
+            }
+        });
+
+        var controlBar = new AMap.ControlBar({
+            position: {
+                right: '10px',
+                top: '10px'
+            }
+        });
+        controlBar.addTo(map);
+
+        var toolBar = new AMap.ToolBar({
+            position: {
+                right: '40px',
+                top: '110px'
+            }
+        });
+        toolBar.addTo(map);
+    }
+
+    mapInit();
+
+    // Track playback logic
+    AMap.plugin('AMap.MoveAnimation', function () {
+        var marker, lineArr = [[114.617937, 30.46013], [114.617997, 30.459125], [114.617793, 30.459047], [114.616763, 30.458964], [114.61687, 30.458027], [114.616878, 30.457645], [114.616467, 30.456867], [114.616018, 30.456052], [114.616614, 30.455873], [114.617882, 30.455885], [114.619825, 30.45603], [114.620079, 30.456106], [114.620246, 30.456211], [114.620518, 30.456509], [114.620647, 30.456727], [114.620703, 30.456905], [114.620723, 30.457189], [114.620726, 30.457232], [114.62071, 30.457354], [114.6215, 30.457372], [114.622373, 30.457423]];
+
+        marker = new AMap.Marker({
+            map: map,
+            position: [114.617937, 30.46013],
+            icon: "https://a.amap.com/jsapi_demos/static/demo-center-v2/car.png",
+            offset: new AMap.Pixel(-13, -26),
+        });
+
+        var polyline = new AMap.Polyline({
+            map: map,
+            path: lineArr,
+            showDir: true,
+            strokeColor: "#28F",
+            strokeWeight: 6,
+        });
+
+        var passedPolyline = new AMap.Polyline({
+            map: map,
+            strokeColor: "#AF5",
+            strokeWeight: 6,
+        });
+
+        marker.on('moving', function (e) {
+            passedPolyline.setPath(e.passedPath);
+            map.setCenter(e.target.getPosition(), true)
+        });
+
+        window.startAnimation = function startAnimation() {
+            marker.moveAlong(lineArr, {
+                duration: 500,
+                autoRotation: true,
+            });
+        };
+
+        window.pauseAnimation = function () {
+            marker.pauseMove();
+        };
+
+        window.resumeAnimation = function () {
+            marker.resumeMove();
+        };
+
+        window.stopAnimation = function () {
+            marker.stopMove();
+        };
+    });
+</script>
+</body>
+</html>
